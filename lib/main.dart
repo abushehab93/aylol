@@ -6,7 +6,11 @@ import 'notifications.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await initNotifications();
+  try {
+    await initNotifications();
+  } catch (e) {
+    debugPrint('init error: $e');
+  }
   runApp(const RoutineApp());
 }
 
@@ -69,11 +73,20 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   }
 
   Future<void> _init() async {
-    d = await AppData.load();
-    setState(() {});
-    await requestNotificationPermissions();
-    await Permission.ignoreBatteryOptimizations.request();
-    await rescheduleAll(d!);
+    try {
+      d = await AppData.load()
+          .timeout(const Duration(seconds: 5), onTimeout: AppData.defaults);
+    } catch (e) {
+      d = AppData.defaults();
+    }
+    if (mounted) setState(() {});
+    try {
+      await requestNotificationPermissions();
+      await Permission.ignoreBatteryOptimizations.request();
+      await rescheduleAll(d!);
+    } catch (e) {
+      debugPrint('schedule error: $e');
+    }
   }
 
   Future<void> _commit() async {
