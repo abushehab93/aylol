@@ -1,0 +1,23 @@
+workflows:
+  rotini-android:
+    name: My Lovely Routine - Android APK
+    max_build_duration: 30
+    instance_type: mac_mini_m2
+    environment:
+      flutter: stable
+      java: 17
+    scripts:
+      - name: Create android folder if missing
+        script: |
+          if [ ! -d "android" ]; then
+            flutter create --org com.example --project-name rotini_aljameel --platforms android .
+          fi
+          rm -f test/widget_test.dart
+      - name: Patch Android files
+        script: python3 tool/patch_android.py
+      - name: Get packages
+        script: flutter pub get
+      - name: Build APK
+        script: flutter build apk --release
+    artifacts:
+      - build/app/outputs/flutter-apk/*.apk
